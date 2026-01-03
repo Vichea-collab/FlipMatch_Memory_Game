@@ -1,15 +1,62 @@
 import 'package:flutter/material.dart';
+
+import '../../app_dependencies.dart';
 import '../../domain/models/player.dart';
+import '../../domain/usecases/upsert_player.dart';
 import '../widgets/app_background.dart';
 import '../widgets/menu_button.dart';
 import 'leaderboard_screen.dart';
 import 'level_select_screen.dart';
 import 'name_entry_screen.dart';
 
-class MainMenuScreen extends StatelessWidget {
+class MainMenuScreen extends StatefulWidget {
   final Player player;
 
   const MainMenuScreen({super.key, required this.player});
+
+  @override
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
+}
+class _MainMenuScreenState extends State<MainMenuScreen> {
+  late Player _player;
+  bool _refreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _player = widget.player;
+  }
+  Future<void> _refreshPlayer() async {
+    setState(() => _refreshing = true);
+    final usecase = UpsertPlayer(playerRepository);
+    final refreshed = await usecase(_player.name);
+    if (!mounted) return;
+    setState(() {
+      _player = refreshed;
+      _refreshing = false;
+    });
+  }
+  Future<void> _openLevels(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LevelSelectScreen(
+          playerName: _player.name,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _refreshPlayer();
+  }
+
+  Future<void> _openLeaderboard(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const LeaderboardScreen(),
+      ),
+    );
+    if (!mounted) return;
+    await _refreshPlayer();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,12 +69,26 @@ class MainMenuScreen extends StatelessWidget {
               'Welcome back, Ranger',
               style: TextStyle(color: Colors.white70),
             ),
-            Text(
-              player.name,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _player.name,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                   ),
+                ),
+                if (_refreshing)
+                  const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             Card(
@@ -39,13 +100,13 @@ class MainMenuScreen extends StatelessWidget {
                     _StatChip(
                       icon: Icons.scoreboard_rounded,
                       label: 'Total score',
-                      value: player.totalScore.toString(),
+                      value: _player.totalScore.toString(),
                     ),
                     const SizedBox(width: 16),
                     _StatChip(
                       icon: Icons.flag_rounded,
                       label: 'Highest level',
-                      value: player.highestLevel.toString(),
+                      value: _player.highestLevel.toString(),
                     ),
                   ],
                 ),
@@ -62,13 +123,8 @@ class MainMenuScreen extends StatelessWidget {
                       label: 'Explore habitats',
                       subtitle: 'Rescue pairs of critters level by level',
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => LevelSelectScreen(
-                              playerName: player.name,
-                            ),
-                          ),
-                        );
+                        if (_refreshing) return;
+                        _openLevels(context);
                       },
                     ),
                     const SizedBox(height: 12),
@@ -77,11 +133,8 @@ class MainMenuScreen extends StatelessWidget {
                       label: 'Caretaker board',
                       subtitle: 'See who saved the most animals',
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const LeaderboardScreen(),
-                          ),
-                        );
+                        if (_refreshing) return;
+                        _openLeaderboard(context);
                       },
                     ),
                     const SizedBox(height: 12),
