@@ -88,8 +88,9 @@ class _GameScreenState extends State<GameScreen> {
 
   void _onCardTap(int index) {
     final card = _cards[index];
-    if (_boardLocked || card.isPlaceholder || card.isMatched || card.isRevealed)
+    if (_boardLocked || card.isPlaceholder || card.isMatched || card.isRevealed) {
       return;
+    }
 
     setState(() {
       _cards[index] = card.copyWith(isRevealed: true);

@@ -1,12 +1,15 @@
 import 'dart:math';
 
-import '../models/card_entity.dart';
-import '../models/level_config.dart';
+import '../entities/card_entity.dart';
+import '../entities/level_config.dart';
+import '../repositories/level_repository.dart';
 
-class GenerateCards {
-  const GenerateCards();
+class GameService {
+  final LevelRepository repository;
 
-  List<CardEntity> call(LevelConfig level) {
+  const GameService(this.repository);
+
+  List<CardEntity> generateCards(LevelConfig level) {
     final pairCount = level.pairCount;
     final totalCells = level.totalCells;
     final placeholdersCount = totalCells - pairCount * 2;
@@ -42,5 +45,26 @@ class GenerateCards {
 
     cards.shuffle(Random());
     return cards;
+  }
+
+  int calculateScore({
+    required bool win,
+    required LevelConfig level,
+    required int remainingSeconds,
+    required int movesUsed,
+  }) {
+    if (!win) return 0;
+
+    final base = 1000 + level.id * 150;
+    final timeBonus = remainingSeconds * 10;
+    final efficiency = (level.maxMoves - movesUsed).clamp(0, 999) * 6;
+
+    return (base + timeBonus + efficiency).clamp(0, 999999);
+  }
+
+  Future<List<LevelConfig>> getLevels() => repository.getLevels();
+
+  Future<List<LevelConfig>> saveLevels(List<LevelConfig> levels) {
+    return repository.saveLevels(levels);
   }
 }

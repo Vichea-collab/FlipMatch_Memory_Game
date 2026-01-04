@@ -1,4 +1,4 @@
-import '../../domain/models/player.dart';
+import '../../domain/entities/player.dart';
 
 class PlayerModel extends Player {
   const PlayerModel({
