@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../../app_dependencies.dart';
-import '../../domain/models/card_entity.dart';
-import '../../domain/models/level_config.dart';
-import '../../domain/models/player.dart';
-import '../../domain/usecases/calculate_score.dart';
-import '../../domain/usecases/generate_cards.dart';
-import '../../domain/usecases/update_player.dart';
-import '../../domain/usecases/upsert_player.dart';
+import '../../domain/entities/card_entity.dart';
+import '../../domain/entities/level_config.dart';
+import '../../domain/entities/player.dart';
+import '../../domain/services/game_service.dart';
+import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
 import '../widgets/card_tile.dart';
 
@@ -40,12 +40,14 @@ class _GameScreenState extends State<GameScreen> {
   Player? _player;
   bool _initializing = true;
 
-  final _generateCards = const GenerateCards();
-  final _calculateScore = const CalculateScore();
+  late final GameService _gameService;
+  late final PlayerService _playerService;
 
   @override
   void initState() {
     super.initState();
+    _gameService = GameService(levelRepository);
+    _playerService = PlayerService(playerRepository);
     _setup();
   }
 
@@ -56,10 +58,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _setup() async {
-    final upsertPlayer = UpsertPlayer(playerRepository);
-    final player = await upsertPlayer(widget.playerName);
+    final player = await _playerService.upsert(widget.playerName);
 
-    _cards = _generateCards(widget.levelConfig);
+    _cards = _gameService.generateCards(widget.levelConfig);
     _remainingSeconds = widget.levelConfig.timeLimitSeconds;
     _moves = 0;
     _matchedPairs = 0;
@@ -147,7 +148,7 @@ class _GameScreenState extends State<GameScreen> {
     if (_player == null) return;
 
     final nextLevel = _getNextLevel();
-    final score = _calculateScore(
+    final score = _gameService.calculateScore(
       win: win,
       level: widget.levelConfig,
       remainingSeconds: _remainingSeconds,
@@ -165,8 +166,7 @@ class _GameScreenState extends State<GameScreen> {
         highestLevel: newHighest,
       );
 
-      final updatePlayer = UpdatePlayer(playerRepository);
-      await updatePlayer(updated);
+      await _playerService.update(updated);
     }
 
     _player = updated;

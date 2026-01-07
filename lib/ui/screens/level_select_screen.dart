@@ -1,11 +1,12 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../../app_dependencies.dart';
-import '../../domain/models/player.dart';
-import '../../domain/models/level_config.dart';
-import '../../domain/usecases/get_levels.dart';
-import '../../domain/usecases/save_levels.dart';
-import '../../domain/usecases/upsert_player.dart';
+import '../../domain/entities/player.dart';
+import '../../domain/entities/level_config.dart';
+import '../../domain/services/game_service.dart';
+import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
 import 'game_screen.dart';
 
@@ -25,20 +26,27 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   bool _saving = false;
   LevelConfig? _lastRemovedLevel;
   int? _lastRemovedIndex;
+  late final PlayerService _playerService;
+  late final GameService _gameService;
 
   @override
   void initState() {
     super.initState();
-    _loadPlayer();
+    _playerService = PlayerService(playerRepository);
+    _gameService = GameService(levelRepository);
+    _loadPlayer(showSpinner: true);
   }
 
-  Future<void> _loadPlayer() async {
-    final playerUsecase = UpsertPlayer(playerRepository);
-    final levelUsecase = GetLevels(levelRepository);
+  Future<void> _loadPlayer({bool showSpinner = false}) async {
+    if (showSpinner && mounted) {
+      setState(() {
+        _loading = true;
+      });
+    }
 
     final results = await Future.wait([
-      playerUsecase(widget.playerName),
-      levelUsecase(),
+      _playerService.upsert(widget.playerName),
+      _gameService.getLevels(),
     ]);
 
     if (!mounted) return;
@@ -50,15 +58,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   }
 
   Future<void> _persistLevels(List<LevelConfig> updated) async {
-    final saveUsecase = SaveLevels(levelRepository);
     setState(() {
       _saving = true;
       _levels = List<LevelConfig>.from(updated)
         ..sort((a, b) => a.id.compareTo(b.id));
     });
-    await saveUsecase(_levels);
+    final saved = await _gameService.saveLevels(_levels);
     if (!mounted) return;
     setState(() {
+      _levels = List<LevelConfig>.from(saved)
+        ..sort((a, b) => a.id.compareTo(b.id));
       _saving = false;
     });
   }
@@ -236,10 +245,164 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       );
     }
 
-    rowsController.dispose();
-    colsController.dispose();
-    timeController.dispose();
-    movesController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      rowsController.dispose();
+      colsController.dispose();
+      timeController.dispose();
+      movesController.dispose();
+    });
+  }
+
+  Future<void> _showEditLevelDialog(LevelConfig level, int index) async {
+    final formKey = GlobalKey<FormState>();
+    final rowsController = TextEditingController(text: level.rows.toString());
+    final colsController = TextEditingController(text: level.cols.toString());
+    final timeController =
+        TextEditingController(text: level.timeLimitSeconds.toString());
+    final movesController = TextEditingController(text: level.maxMoves.toString());
+    String? gridError;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text('Edit Habitat ${level.id}'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: rowsController,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.black87),
+                            decoration: const InputDecoration(labelText: 'Rows'),
+                            validator: (value) {
+                              final rows = int.tryParse(value ?? '');
+                              if (rows == null || rows <= 0) {
+                                return 'Enter rows';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: colsController,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.black87),
+                            decoration: const InputDecoration(labelText: 'Cols'),
+                            validator: (value) {
+                              final cols = int.tryParse(value ?? '');
+                              if (cols == null || cols <= 0) {
+                                return 'Enter cols';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: timeController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.black87),
+                      decoration:
+                          const InputDecoration(labelText: 'Time limit (seconds)'),
+                      validator: (value) {
+                        final seconds = int.tryParse(value ?? '');
+                        if (seconds == null || seconds <= 10) {
+                          return 'Min 10 seconds';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: movesController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.black87),
+                      decoration: const InputDecoration(labelText: 'Max moves'),
+                      validator: (value) {
+                        final moves = int.tryParse(value ?? '');
+                        if (moves == null || moves <= 0) {
+                          return 'Enter moves';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (gridError != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        gridError!,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).maybePop(false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) return;
+                    final rows = int.parse(rowsController.text);
+                    final cols = int.parse(colsController.text);
+                    if ((rows * cols) % 2 != 0) {
+                      setStateDialog(() {
+                        gridError = 'Rows × columns must produce pairs.';
+                      });
+                      return;
+                    }
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Save changes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      final rows = int.parse(rowsController.text);
+      final cols = int.parse(colsController.text);
+      final time = int.parse(timeController.text);
+      final moves = int.parse(movesController.text);
+      final updatedLevel = LevelConfig(
+        id: level.id,
+        rows: rows,
+        cols: cols,
+        timeLimitSeconds: time,
+        maxMoves: moves,
+      );
+      final updatedList = List<LevelConfig>.from(_levels);
+      updatedList[index] = updatedLevel;
+      await _persistLevels(updatedList);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Habitat ${level.id} updated')),
+      );
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      rowsController.dispose();
+      colsController.dispose();
+      timeController.dispose();
+      movesController.dispose();
+    });
   }
 
   @override
@@ -282,7 +445,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final level = _levels[index];
-                            final highestLevel = _player?.highestLevel ?? 1;
+                            final highestLevel = _player?.highestLevel ?? 0;
                             final isUnlocked = level.id <= highestLevel + 1;
                             final isCompleted = level.id <= highestLevel;
 
@@ -324,6 +487,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                         color: badgeColor,
                                       ),
                                       IconButton(
+                                        icon: const Icon(Icons.edit_note_rounded),
+                                        tooltip: 'Edit habitat',
+                                        onPressed: (_loading || _saving)
+                                            ? null
+                                            : () => _showEditLevelDialog(
+                                                  level,
+                                                  index,
+                                                ),
+                                      ),
+                                      IconButton(
                                         icon: const Icon(Icons.delete_outline_rounded),
                                         tooltip: 'Remove habitat',
                                         onPressed: (_loading || _saving)
@@ -333,8 +506,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                     ],
                                   ),
                                   onTap: isUnlocked
-                                      ? () {
-                                          Navigator.of(context).push(
+                                      ? () async {
+                                          await Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (_) => GameScreen(
                                                 playerName: widget.playerName,
@@ -343,6 +516,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                               ),
                                             ),
                                           );
+                                          if (!mounted) return;
+                                          await _loadPlayer(showSpinner: true);
                                         }
                                       : null,
                                 ),

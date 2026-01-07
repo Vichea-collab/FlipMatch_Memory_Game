@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../app_dependencies.dart';
-import '../../domain/usecases/upsert_player.dart';
+import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
 import 'main_menu_screen.dart';
 
@@ -13,6 +14,7 @@ class NameEntryScreen extends StatefulWidget {
 
 class _NameEntryScreenState extends State<NameEntryScreen> {
   final TextEditingController _controller = TextEditingController();
+  final PlayerService _playerService = PlayerService(playerRepository);
   bool _loading = false;
 
   Future<void> _continue() async {
@@ -20,8 +22,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     if (name.isEmpty) return;
 
     setState(() => _loading = true);
-    final usecase = UpsertPlayer(playerRepository);
-    final player = await usecase(name);
+    final player = await _playerService.upsert(name);
     if (!mounted) return;
     setState(() => _loading = false);
 
@@ -91,7 +92,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Collect all the critters across 20 wild habitats',
+                  'Collect all the critters across many wild habitats',
                   style: TextStyle(color: Colors.white70),
                 ),
               ],
