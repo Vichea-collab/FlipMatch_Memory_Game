@@ -1,4 +1,4 @@
-# FlipMatch – Memory Pair Game
+# FlipMatch – Memory Game
 
 Demo Link: https://youtube.com/shorts/7ICLVMz2NdI?feature=share
 
