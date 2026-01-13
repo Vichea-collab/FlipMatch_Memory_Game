@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:memory_pair_game/domain/entities/level_config.dart';
+import 'package:memory_pair_game/domain/models/level_config.dart';
 
 void main() {
   group('LevelConfig', () {

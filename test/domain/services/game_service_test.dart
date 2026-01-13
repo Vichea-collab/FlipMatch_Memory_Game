@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:memory_pair_game/domain/entities/level_config.dart';
-import 'package:memory_pair_game/domain/repositories/level_repository.dart';
+import 'package:memory_pair_game/data/level_repository.dart';
+import 'package:memory_pair_game/domain/models/level_config.dart';
 import 'package:memory_pair_game/domain/services/game_service.dart';
 
 void main() {
   late GameService service;
 
   setUp(() {
-    service = GameService(_FakeLevelRepository());
+    service = GameService(_FakeLevelData());
   });
 
   test('generateCards creates paired cards with expected counts', () {
@@ -108,7 +108,7 @@ void main() {
   });
 }
 
-class _FakeLevelRepository implements LevelRepository {
+class _FakeLevelData extends LevelData {
   @override
   Future<List<LevelConfig>> getLevels() async => [];
 

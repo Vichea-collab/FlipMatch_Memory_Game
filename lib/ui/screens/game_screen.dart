@@ -4,9 +4,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../app_dependencies.dart';
-import '../../domain/entities/card_entity.dart';
-import '../../domain/entities/level_config.dart';
-import '../../domain/entities/player.dart';
+import '../../domain/models/card_entity.dart';
+import '../../domain/models/level_config.dart';
+import '../../domain/models/player.dart';
 import '../../domain/services/game_service.dart';
 import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
@@ -46,8 +46,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _gameService = GameService(levelRepository);
-    _playerService = PlayerService(playerRepository);
+    _gameService = GameService(levelData);
+    _playerService = PlayerService(playerData);
     _setup();
   }
 

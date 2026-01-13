@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../app_dependencies.dart';
-import '../../domain/entities/player.dart';
-import '../../domain/entities/level_config.dart';
+import '../../domain/models/player.dart';
+import '../../domain/models/level_config.dart';
 import '../../domain/services/game_service.dart';
 import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
@@ -32,8 +32,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   @override
   void initState() {
     super.initState();
-    _playerService = PlayerService(playerRepository);
-    _gameService = GameService(levelRepository);
+    _playerService = PlayerService(playerData);
+    _gameService = GameService(levelData);
     _loadPlayer(showSpinner: true);
   }
 

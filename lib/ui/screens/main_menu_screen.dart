@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app_dependencies.dart';
-import '../../domain/entities/player.dart';
+import '../../domain/models/player.dart';
 import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
 import '../widgets/menu_button.dart';
@@ -27,7 +27,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   void initState() {
     super.initState();
     _player = widget.player;
-    _playerService = PlayerService(playerRepository);
+    _playerService = PlayerService(playerData);
   }
 
   Future<void> _refreshPlayer() async {

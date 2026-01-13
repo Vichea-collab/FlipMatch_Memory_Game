@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app_dependencies.dart';
-import '../../domain/entities/player.dart';
+import '../../domain/models/player.dart';
 import '../../domain/services/player_service.dart';
 import '../widgets/app_background.dart';
 
@@ -20,7 +20,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   void initState() {
     super.initState();
-    _playerService = PlayerService(playerRepository);
+    _playerService = PlayerService(playerData);
     _load();
   }
 

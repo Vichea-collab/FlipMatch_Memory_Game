@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/card_entity.dart';
+import '../../domain/models/card_entity.dart';
 
 class CardTile extends StatelessWidget {
   final CardEntity card;
