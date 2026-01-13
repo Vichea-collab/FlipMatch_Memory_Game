@@ -8,7 +8,7 @@ void main() {
   late GameService service;
 
   setUp(() {
-    service = GameService(_FakeLevelData());
+    service = GameService(_FakeLevelRepository());
   });
 
   test('generateCards creates paired cards with expected counts', () {
@@ -108,7 +108,7 @@ void main() {
   });
 }
 
-class _FakeLevelData extends LevelData {
+class _FakeLevelRepository extends LevelRepository {
   @override
   Future<List<LevelConfig>> getLevels() async => [];
 

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models/player.dart';
 
-class PlayerData {
+class PlayerRepository {
   static const String _storageKey = 'players';
 
   Future<List<Player>> getAllPlayers() async {

@@ -20,7 +20,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   void initState() {
     super.initState();
-    _playerService = PlayerService(playerData);
+    _playerService = PlayerService(playerRepository);
     _load();
   }
 

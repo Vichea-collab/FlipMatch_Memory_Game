@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models/level_config.dart';
 
-class LevelData {
+class LevelRepository {
   static const String _storageKey = 'levels';
 
   static const List<LevelConfig> _defaultLevels = [

@@ -4,13 +4,13 @@ import 'package:memory_pair_game/domain/models/level_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  group('LevelData', () {
+  group('LevelRepository', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
     });
 
     test('returns defaults when storage is empty', () async {
-      final data = LevelData();
+      final data = LevelRepository();
 
       final levels = await data.getLevels();
 
@@ -19,7 +19,7 @@ void main() {
     });
 
     test('saveLevels persists and sorts by id', () async {
-      final data = LevelData();
+      final data = LevelRepository();
       const custom = [
         LevelConfig(id: 2, rows: 2, cols: 3, timeLimitSeconds: 60, maxMoves: 10),
         LevelConfig(id: 1, rows: 2, cols: 2, timeLimitSeconds: 60, maxMoves: 8),
@@ -27,7 +27,7 @@ void main() {
 
       await data.saveLevels(custom);
 
-      final reloaded = LevelData();
+      final reloaded = LevelRepository();
       final levels = await reloaded.getLevels();
 
       expect(levels, hasLength(2));

@@ -5,9 +5,9 @@ import '../models/card_entity.dart';
 import '../models/level_config.dart';
 
 class GameService {
-  final LevelData data;
+  final LevelRepository repository;
 
-  const GameService(this.data);
+  const GameService(this.repository);
 
   List<CardEntity> generateCards(LevelConfig level) {
     final pairCount = level.pairCount;
@@ -62,9 +62,9 @@ class GameService {
     return (base + timeBonus + efficiency).clamp(0, 999999);
   }
 
-  Future<List<LevelConfig>> getLevels() => data.getLevels();
+  Future<List<LevelConfig>> getLevels() => repository.getLevels();
 
   Future<List<LevelConfig>> saveLevels(List<LevelConfig> levels) {
-    return data.saveLevels(levels);
+    return repository.saveLevels(levels);
   }
 }

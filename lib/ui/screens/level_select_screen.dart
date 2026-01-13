@@ -32,8 +32,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   @override
   void initState() {
     super.initState();
-    _playerService = PlayerService(playerData);
-    _gameService = GameService(levelData);
+    _playerService = PlayerService(playerRepository);
+    _gameService = GameService(levelRepository);
     _loadPlayer(showSpinner: true);
   }
 

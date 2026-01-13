@@ -46,8 +46,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _gameService = GameService(levelData);
-    _playerService = PlayerService(playerData);
+    _gameService = GameService(levelRepository);
+    _playerService = PlayerService(playerRepository);
     _setup();
   }
 

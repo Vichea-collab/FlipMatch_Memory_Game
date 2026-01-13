@@ -1,5 +1,5 @@
 import 'data/level_repository.dart';
 import 'data/player_repository.dart';
 
-final PlayerData playerData = PlayerData();
-final LevelData levelData = LevelData();
+final PlayerRepository playerRepository = PlayerRepository();
+final LevelRepository levelRepository = LevelRepository();

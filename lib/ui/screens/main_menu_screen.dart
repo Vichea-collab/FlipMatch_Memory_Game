@@ -27,7 +27,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   void initState() {
     super.initState();
     _player = widget.player;
-    _playerService = PlayerService(playerData);
+    _playerService = PlayerService(playerRepository);
   }
 
   Future<void> _refreshPlayer() async {

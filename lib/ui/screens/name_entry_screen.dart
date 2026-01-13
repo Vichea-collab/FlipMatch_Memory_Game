@@ -14,7 +14,7 @@ class NameEntryScreen extends StatefulWidget {
 
 class _NameEntryScreenState extends State<NameEntryScreen> {
   final TextEditingController _controller = TextEditingController();
-  final PlayerService _playerService = PlayerService(playerData);
+  final PlayerService _playerService = PlayerService(playerRepository);
   bool _loading = false;
 
   Future<void> _continue() async {

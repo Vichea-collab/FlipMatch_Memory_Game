@@ -4,20 +4,20 @@ import 'package:memory_pair_game/domain/models/player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  group('PlayerData', () {
+  group('PlayerRepository', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
     });
 
     test('upsert creates and persists a player', () async {
-      final data = PlayerData();
+      final data = PlayerRepository();
 
       final player = await data.upsertPlayer('Sam');
       expect(player.name, 'Sam');
       expect(player.totalScore, 0);
       expect(player.highestLevel, 0);
 
-      final reloaded = PlayerData();
+      final reloaded = PlayerRepository();
       final players = await reloaded.getAllPlayers();
 
       expect(players, hasLength(1));
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('update replaces existing player values', () async {
-      final data = PlayerData();
+      final data = PlayerRepository();
 
       await data.upsertPlayer('Ava');
       await data.updatePlayer(
@@ -38,7 +38,7 @@ void main() {
     });
 
     test('delete removes player by name', () async {
-      final data = PlayerData();
+      final data = PlayerRepository();
       await data.upsertPlayer('Rex');
 
       await data.deletePlayer('rex');

@@ -5,11 +5,11 @@ import 'package:memory_pair_game/domain/services/player_service.dart';
 
 void main() {
   group('PlayerService', () {
-    late _FakePlayerData data;
+    late _FakePlayerRepository data;
     late PlayerService service;
 
     setUp(() {
-      data = _FakePlayerData();
+      data = _FakePlayerRepository();
       service = PlayerService(data);
     });
 
@@ -23,7 +23,7 @@ void main() {
     });
 
     test('update writes new values when player exists', () async {
-      data = _FakePlayerData([
+      data = _FakePlayerRepository([
         const Player(name: 'Casey', totalScore: 50, highestLevel: 1),
       ]);
       service = PlayerService(data);
@@ -38,7 +38,7 @@ void main() {
     });
 
     test('delete forwards to data', () async {
-      data = _FakePlayerData([
+      data = _FakePlayerRepository([
         const Player(name: 'Rex', totalScore: 10, highestLevel: 1),
       ]);
       service = PlayerService(data);
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('getAll returns data content', () async {
-      data = _FakePlayerData([
+      data = _FakePlayerRepository([
         const Player(name: 'A', totalScore: 5, highestLevel: 1),
         const Player(name: 'B', totalScore: 10, highestLevel: 2),
       ]);
@@ -65,14 +65,14 @@ void main() {
   });
 }
 
-class _FakePlayerData extends PlayerData {
+class _FakePlayerRepository extends PlayerRepository {
   final List<Player> _store;
   int upsertCalls = 0;
   int updateCalls = 0;
   int deleteCalls = 0;
   int getAllCalls = 0;
 
-  _FakePlayerData([List<Player>? initial])
+  _FakePlayerRepository([List<Player>? initial])
       : _store = List<Player>.from(initial ?? const []);
 
   @override
